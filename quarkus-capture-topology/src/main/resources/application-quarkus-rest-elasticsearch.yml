@@ -1,0 +1,8 @@
+quarkus:
+  log:
+    level: INFO
+    category:
+      "org.elasticsearch.client.RestClient":
+        level: ERROR
+  elasticsearch:
+    hosts: localhost:9200

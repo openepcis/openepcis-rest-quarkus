@@ -1,0 +1,33 @@
+
+.classpath
+.DS_Store
+.env
+.factorypath
+.idea
+.project
+.settings/
+.vscode
+*.iml
+*.ipr
+*.iws
+*.orig
+*.rej
+*.swo
+*.swp
+# Eclipse
+# IntelliJ
+# Local environment
+# NetBeans
+# OSX
+# patch
+# Vim
+# Visual Studio Code
+#Maven
+bin/
+logs/
+nb-configuration.xml
+pom.xml.releaseBackup
+pom.xml.tag
+pom.xml.versionsBackup
+release.properties
+target/

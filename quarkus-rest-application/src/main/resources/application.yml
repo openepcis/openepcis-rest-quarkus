@@ -1,0 +1,365 @@
+#
+# Copyright 2022-2026 benelog GmbH & Co. KG
+#
+#     Licensed under the Apache License, Version 2.0 (the "License");
+#     you may not use this file except in compliance with the License.
+#     You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#     Unless required by applicable law or agreed to in writing, software
+#     distributed under the License is distributed on an "AS IS" BASIS,
+#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#     See the License for the specific language governing permissions and
+#     limitations under the License.
+#
+# The Community Edition of the EPCIS repository service.
+#
+# No authentication at all: every request is the default user with the roles capture, query
+# and admin (OpenAccessAuthenticationMechanism). Anyone who can reach the service can read,
+# write and delete everything. Single tenant, no document-level security; OpenSearch is expected
+# to run without its security plugin. For trying OpenEPCIS out, not for production.
+#
+# The Business edition adds its own application.yml at a higher ordinal on top of this one.
+#
+openepcis:
+  edition: ce
+
+storage:
+  factory-name: "${STORAGE_FACTORY:local}"
+  local-path: "${STORAGE_LOCAL_PATH:/data/openepcis}"
+  bucket: openepcis
+  document-key-prefix-date-format: "'capture-document/'yyyy/MM/dd/"
+  event-key-prefix-date-format: "'epcis-event/'yyyy/MM/dd/"
+  json-schema-key-prefix: "json-schema/"
+
+app:
+  http:
+    connect-timeout-in-seconds: 20
+
+  # API rate limits per user and default role; an example configuration, see RateLimitService
+  ratelimit:
+    defaultroles:
+      - role: group1              # name of the default role associated to users
+        permitted-uses: 1         # number api limit for the default role
+        time-duration: 1          # duration of the token refresh after the exhaust
+        duration-unit: MINUTES    # duration unit of the api rate limit in ChronoUnit MINUTES, SECONDS, HOURS, etc.
+        shared: true              # sharing of token bucket; true if shared for all endpoints, false each endpoint has its own bucket per user per group basis
+      - role: group2
+        permitted-uses: 2
+        time-duration: 2
+        duration-unit: MINUTES
+        shared: false
+  gs1:
+    cbv:
+      version: 2.0.0
+      min: 1.2.2
+      max: 2.0.0
+      extensions:
+    vendor:
+      json-ld-known-constructs: ns.gs1.org/epcis/, http://purl.org/dc/terms, @id, @type, owl:versionInfo
+      version: 999-SNAPSHOT
+  event:
+    hashgenerator:
+      url: https://event-hash-generator.openepcis.io/hash
+    event-access-role: query
+  error-declaration-event-retriever:
+    count: 20
+  subscription:
+    streaming-interval: 5
+    per-page: 100
+  roles:
+    filter:
+      - query
+      - capture
+      - admin
+
+capture:
+  # Number of events allowed per capture request
+  limit: "${CAPTURE_LIMIT:100000}"
+  # Maximum file size per capture request (Specified in bytes)
+  file-size-limit: "${CAPTURE_FILE_SIZE_LIMIT:1073741824}"
+
+scriptengine:
+  pool-size: 30
+
+repository:
+  user:
+    # The one group every record is written under. The Community Edition reads it from here and
+    # never from a token; the Business edition takes the tenant from the token instead.
+    default-group: "${OPENEPCIS_DEFAULT_GROUP:query}"
+    default-user: "${OPENEPCIS_DEFAULT_USER:openepcis-admin}"
+    username-is-default-group: false
+    extension:
+      fields:
+        index: user-extension-fields
+      schema:
+        index: user-extension-schema
+  epcis:
+    event:
+      index: epcis-event
+    query:
+      index: epcis-query
+    subscription:
+      index: epcis-subscription
+    streaming:
+      subscription: epcis-percolator-queries
+    next-page-token-ttl: 1m
+    per-page-default: 30
+    per-page-max: 100
+    top-level:
+      per-page-default: 100
+      per-page-max: 1000
+  capture:
+    job:
+      index: capture-job
+  epc:
+    index: epc
+
+quarkus:
+  # OpenTelemetry stays compiled in (the capture pipeline injects a Tracer), the SDK is switched
+  # off at run time unless a collector is configured: OTEL_SDK_DISABLED=false and the usual
+  # QUARKUS_OTEL_EXPORTER_OTLP_* settings turn it on.
+  otel:
+    sdk:
+      disabled: "${OTEL_SDK_DISABLED:true}"
+    resource:
+      attributes:
+        - "service.namespace=openepcis"
+        - "deployment.environment=${ENV:dev}"
+        - "k8s.pod.name=${HOSTNAME:}"
+
+  micrometer:
+    binder:
+      http-server:
+        # Scanners probing /wp-admin, /.env and the like got one uri tag each
+        # (401/431, no matching route). Unmatched 4xx now count as UNKNOWN.
+        suppress4xx-errors: true
+
+  security:
+    auth:
+      enabled-in-dev-mode: true
+  arc:
+    unremovable-types: io.quarkus.security.spi.runtime.SecurityCheckStorage
+
+  log:
+    level: INFO
+    category:
+      "org.opensearch.client.RestClient":
+        level: ERROR
+      "io.smallrye.openapi.runtime.scanner.spi":
+        level: ERROR
+    console:
+      format: "%d{yyyy-MM-dd HH:mm:ss} %-5p [%X{traceId}, %X{spanId}] [%c{2.}] (%t) %s%e%n"
+  swagger-ui:
+    always-include: true
+    theme: original
+  health:
+    openapi:
+      included: true
+  smallrye-health:
+    ui:
+      always-include: true
+  console:
+    color: true
+
+  # One OpenSearch, reached with one set of credentials (none by default). The named "admin"
+  # client is what index initialisation and background writes use; in the Community Edition it
+  # is the same cluster with the same credentials.
+  opensearch:
+    hosts: "${QUARKUS_OPENSEARCH_HOSTS:localhost:9200}"
+    protocol: "${QUARKUS_OPENSEARCH_PROTOCOL:http}"
+    username: "${QUARKUS_OPENSEARCH_USERNAME:}"
+    password: "${QUARKUS_OPENSEARCH_PASSWORD:}"
+    ssl:
+      verify: "${QUARKUS_OPENSEARCH_SSL_VERIFY:true}"
+    admin:
+      hosts: "${QUARKUS_OPENSEARCH_HOSTS:localhost:9200}"
+      protocol: "${QUARKUS_OPENSEARCH_PROTOCOL:http}"
+      username: "${QUARKUS_OPENSEARCH_USERNAME:}"
+      password: "${QUARKUS_OPENSEARCH_PASSWORD:}"
+      ssl:
+        verify: "${QUARKUS_OPENSEARCH_SSL_VERIFY:true}"
+
+  cache:
+    caffeine:
+      "capture-job-status-message":
+        initial-capacity: 10
+        maximum-size: 100
+        expire-after-write: "0.2S"
+      "jsonld-expand-document-cache":
+        initial-capacity: 10
+        maximum-size: 1000
+        expire-after-write: "5M"
+      "rate-limit-buckets":
+        initial-capacity: 10
+        maximum-size: 1000
+        expire-after-write: "5M"
+
+  kafka-streams:
+    bootstrap-servers: ${kafka.bootstrap.servers}
+    application-server: localhost:8080
+    topics: epcis-event-captured
+    application-id: ${quarkus.application.name}-streams
+
+  # Scheduled subscriptions run on JobRunr. In memory by default; the Business edition puts
+  # them on PostgreSQL.
+  jobrunr:
+    database:
+      type: "${JOBRUNR_DATABASE_TYPE:mem}"
+    background-job-server:
+      enabled: true
+    dashboard:
+      enabled: "${JOBRUNR_DASHBOARD:false}"
+
+  http:
+    cors:
+      enabled: true
+      origins: "${QUARKUS_HTTP_CORS_ORIGINS:/.*/}"
+      exposed-headers: "${QUARKUS_HTTP_CORS_EXPOSED_HEADERS:Location,Link}"
+    auth:
+      policy:
+        capture-policy:
+          permissions:
+            capture: capture
+        query-policy:
+          permissions:
+            query: query
+        admin-policy:
+          permissions:
+            admin: admin
+      permission:
+        public:
+          paths:
+            - "/q/*"
+            - "/xsl/*"
+          policy: permit
+          methods: GET,HEAD
+        capture:
+          paths: /*
+          policy: capture-policy
+        query:
+          paths: /*
+          policy: query-policy
+        admin:
+          paths: /*
+          policy: admin-policy
+
+"%dev":
+  storage:
+    local-path: "${java.io.tmpdir}/openepcis"
+"%test":
+  storage:
+    local-path: "${java.io.tmpdir}/openepcis-test"
+
+kafka:
+  bootstrap:
+    servers: "${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}"
+
+kafka-streams:
+  num:
+    stream:
+      threads: "${KAFKA_STREAMS_NUM_STREAM_THREADS:1}"
+  # The capture job status leaves the aggregate store only when the cache flushes, which
+  # happens on commit. The Kafka Streams default of 30 s showed as a job that stayed
+  # running for half a minute after its events were stored.
+  # Nested, not as the quoted key "interval.ms": YAML keeps the quotes in the property name,
+  # Kafka Streams never saw it and committed every 30 s (the default), measured on dev.
+  commit:
+    interval:
+      ms: "${KAFKA_STREAMS_COMMIT_INTERVAL_MS:1000}"
+
+mp:
+  messaging:
+    # The validated-success and validated-failure channels belong to quarkus-capture-topology,
+    # which defines them with the topics the topology consumes. Defining them here again, as
+    # this file once did with other topic names, left the winner to class-path order.
+    outgoing:
+      websocket-subscription-out:
+        topic: websocket-subscription
+        connector: smallrye-kafka
+        value:
+          serializer: org.apache.kafka.common.serialization.StringSerializer
+        key:
+          serializer: org.apache.kafka.common.serialization.StringSerializer
+      event-saved-out:
+        topic: event-saved
+        connector: smallrye-kafka
+        value:
+          serializer: io.quarkus.kafka.client.serialization.JsonbSerializer
+        key:
+          serializer: org.apache.kafka.common.serialization.StringSerializer
+      event-captured-out:
+        topic: epcis-event-captured
+        connector: smallrye-kafka
+        value:
+          serializer: io.quarkus.kafka.client.serialization.JsonbSerializer
+        key:
+          serializer: org.apache.kafka.common.serialization.StringSerializer
+      capture-document-out:
+        topic: capture-documents
+        connector: smallrye-kafka
+        merge: true
+        value:
+          serializer: io.quarkus.kafka.client.serialization.JsonbSerializer
+        key:
+          serializer: org.apache.kafka.common.serialization.StringSerializer
+      capture-document-event-out:
+        topic: capture-document-event
+        connector: smallrye-kafka
+        merge: true
+        value:
+          serializer: io.quarkus.kafka.client.serialization.JsonbSerializer
+        key:
+          serializer: org.apache.kafka.common.serialization.StringSerializer
+      capture-document-event-error-out:
+        topic: capture-document-event-error
+        connector: smallrye-kafka
+        merge: true
+        value:
+          serializer: io.quarkus.kafka.client.serialization.JsonbSerializer
+        key:
+          serializer: org.apache.kafka.common.serialization.StringSerializer
+      capture-document-event-count-out:
+        topic: capture-document-event-count
+        connector: smallrye-kafka
+        merge: true
+        value:
+          serializer: io.quarkus.kafka.client.serialization.JsonbSerializer
+        key:
+          serializer: org.apache.kafka.common.serialization.StringSerializer
+    incoming:
+      # Query results for WebSocket sessions. The result is produced on one pod (the one that
+      # percolated the event, or ran the scheduled query) and the session may be held by another,
+      # so every pod reads every result: a consumer group per process start, from the latest
+      # offset, and QueriesWebSocket keeps what belongs to its own sessions.
+      websocket-subscription:
+        topic: websocket-subscription
+        connector: smallrye-kafka
+        group:
+          id: websocket-${quarkus.uuid}
+        auto:
+          offset:
+            reset: latest
+        value:
+          deserializer: org.apache.kafka.common.serialization.StringDeserializer
+        key:
+          deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      event-saved-in:
+        topic: event-saved
+        group:
+          id: streaming-consumer-group
+        connector: smallrye-kafka
+        value:
+          deserializer: io.openepcis.capture.kafka.EventSavedMessageDeserializer
+        key:
+          deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      event-saved-in-epc-consumer:
+        topic: event-saved
+        group:
+          id: epc-consumer-group
+        connector: smallrye-kafka
+        value:
+          deserializer: io.openepcis.capture.kafka.EventSavedMessageDeserializer
+        key:
+          deserializer: org.apache.kafka.common.serialization.StringDeserializer
