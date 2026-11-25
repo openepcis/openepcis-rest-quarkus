@@ -26,7 +26,7 @@ openepcis:
   edition: ce
 
 storage:
-  factory-name: "${STORAGE_FACTORY:local}"
+  factory-name: "${STORAGE_FACTORY:${STORAGE_TYPE:local}}"
   local-path: "${STORAGE_LOCAL_PATH:/data/openepcis}"
   bucket: openepcis
   document-key-prefix-date-format: "'capture-document/'yyyy/MM/dd/"

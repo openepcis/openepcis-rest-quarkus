@@ -21,7 +21,7 @@ s3:
   document-key-prefix-date-format: "'capture-document/'yyyy/MM/dd/"
 
 storage:
-  factory-name: "${STORAGE_TYPE:noop}"
+  factory-name: "${STORAGE_FACTORY:${STORAGE_TYPE:local}}"
   bucket: openepcis
   document-key-prefix-date-format: "'capture-document/'yyyy/MM/dd/"
   event-key-prefix-date-format: "'epcis-event/'yyyy/MM/dd/"
@@ -72,7 +72,7 @@ quarkus:
       path: logs/openepcis.log
       format: "%d{yyyy-MM-dd HH:mm:ss} %-5p [%X{traceId}, %X{spanId}] [%c{2.}] (%t) %s%e%n"
   opensearch:
-    hosts: localhost:9200
+    hosts: ${QUARKUS_OPENSEARCH_HOSTS:localhost:9200}
   s3:
     endpoint-override: "${S3_ENDPOINT_OVERRIDE:http://127.0.0.1:9100}"
     path-style-access: true
@@ -103,7 +103,7 @@ kafka-streams:
   cache:
     "max.bytes.buffering": 1048576
   commit:
-    "interval.ms": 1000
+    "interval.ms": "${KAFKA_STREAMS_COMMIT_INTERVAL_MS:1000}"
   # One record that cannot be processed or read is logged and skipped; it does not stop the
   # stream for everyone. An uncaught exception still ends only the thread, which
   # CaptureStreamsUncaughtExceptionHandler replaces.
