@@ -280,3 +280,8 @@ mp:
 
 #  class-loading:
 #    parent-first-artifacts: jakarta.xml.bind:jakarta.xml.bind-api,org.eclipse.persistence:org.eclipse.persistence.asm,org.eclipse.persistence:org.eclipse.persistence.core,org.eclipse.persistence:org.eclipse.persistence.moxy
+
+# tests keep captured documents out of the working tree
+"%test":
+  storage:
+    local-path: "${java.io.tmpdir}/openepcis-topology-test"
