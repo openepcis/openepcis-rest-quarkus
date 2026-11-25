@@ -338,7 +338,27 @@ public class RestResourceUtil {
   }
 
   public String getSupportedGS1Extensions() {
-    return userExtensionSchemaCache.getUserExtensionSchema().stream().map(userExtensionSchema -> userExtensionSchema.getDefaultPrefix().concat("=").concat(userExtensionSchema.getNamespace())).collect(Collectors.joining(","));
+    return gs1ExtensionsHeader(
+        userExtensionSchemaCache.getUserExtensionSchema().stream()
+            .map(schema -> Map.entry(schema.getDefaultPrefix(), schema.getNamespace()))
+            .toList());
+  }
+
+  /**
+   * The GS1-Extensions header: prefix=namespace pairs, each prefix once. A namespace may be known
+   * under an alias as well (the ref.openepcis.io namespaces behind the ref.openepcis.org ones share
+   * their prefixes); a prefix can only stand for one namespace, so the first one named wins.
+   */
+  static String gs1ExtensionsHeader(final java.util.List<Map.Entry<String, String>> prefixedNamespaces) {
+    final Map<String, String> byPrefix = new java.util.LinkedHashMap<>();
+    for (final Map.Entry<String, String> entry : prefixedNamespaces) {
+      if (entry.getKey() != null && entry.getValue() != null) {
+        byPrefix.putIfAbsent(entry.getKey(), entry.getValue());
+      }
+    }
+    return byPrefix.entrySet().stream()
+        .map(e -> e.getKey() + "=" + e.getValue())
+        .collect(Collectors.joining(","));
   }
 
   public Optional<EPCISFormat> epcisFormat() {
