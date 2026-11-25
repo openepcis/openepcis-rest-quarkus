@@ -26,7 +26,7 @@ openepcis:
   edition: ce
 
 storage:
-  factory-name: "${STORAGE_FACTORY:local}"
+  factory-name: "${STORAGE_FACTORY:${STORAGE_TYPE:local}}"
   local-path: "${STORAGE_LOCAL_PATH:/data/openepcis}"
   bucket: openepcis
   document-key-prefix-date-format: "'capture-document/'yyyy/MM/dd/"
@@ -58,7 +58,8 @@ app:
       extensions:
     vendor:
       json-ld-known-constructs: ns.gs1.org/epcis/, http://purl.org/dc/terms, @id, @type, owl:versionInfo
-      version: 999-SNAPSHOT
+      # GS1-Vendor-Version: the release, not a literal the release script does not touch
+      version: ${quarkus.application.version}
   event:
     hashgenerator:
       url: https://event-hash-generator.openepcis.io/hash
