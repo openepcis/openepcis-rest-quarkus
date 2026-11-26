@@ -95,6 +95,19 @@ class CommunityEditionCaptureQueryTest {
   }
 
   @Test
+  @DisplayName("the OpenAPI document asks for no credentials")
+  void openApiHasNoSecurityRequirements() {
+    given()
+        .queryParam("format", "json")
+        .when()
+        .get("/q/openapi")
+        .then()
+        .statusCode(200)
+        .body(containsString("/capture"))
+        .body(not(containsString("\"security\"")));
+  }
+
+  @Test
   @DisplayName("a captured document is queryable, in 2.0 JSON and in 1.2 XML")
   void captureThenQuery() {
     awaitReadiness();
