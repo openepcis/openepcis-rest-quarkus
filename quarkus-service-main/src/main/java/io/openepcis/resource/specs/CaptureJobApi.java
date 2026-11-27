@@ -68,12 +68,12 @@ public interface CaptureJobApi {
             name = "GS1-EPCIS-Min",
             description = ParameterDescriptions.GS1_EPCIS_MIN,
             in = ParameterIn.HEADER,
-            content = @Content(example = DEFAULT_EPCIS_MIN_PARAMETER_VALUE)),
+            example = DEFAULT_EPCIS_MIN_PARAMETER_VALUE),
         @Parameter(
             name = "GS1-EPCIS-Max",
             description = ParameterDescriptions.GS1_EPCIS_MAX,
             in = ParameterIn.HEADER,
-            content = @Content(example = DEFAULT_EPCIS_MAX_PARAMETER_VALUE)),
+            example = DEFAULT_EPCIS_MAX_PARAMETER_VALUE),
         @Parameter(
             name = "GS1-Extensions",
             description = ParameterDescriptions.GS1_EXTENSIONS,
@@ -196,17 +196,17 @@ public interface CaptureJobApi {
             name = "nextPageToken",
             description = ParameterDescriptions.NEXT_PAGE_TOKEN,
             in = ParameterIn.QUERY,
-            content = @Content(example = "3A15506738749783AU6D7DENAKwM2gQRRwGritaeq")),
+            example = "3A15506738749783AU6D7DENAKwM2gQRRwGritaeq"),
         @Parameter(
             name = "GS1-EPCIS-Min",
             description = ParameterDescriptions.GS1_EPCIS_MIN,
             in = ParameterIn.HEADER,
-            content = @Content(example = DEFAULT_EPCIS_MIN_PARAMETER_VALUE)),
+            example = DEFAULT_EPCIS_MIN_PARAMETER_VALUE),
         @Parameter(
             name = "GS1-EPCIS-Max",
             description = ParameterDescriptions.GS1_EPCIS_MAX,
             in = ParameterIn.HEADER,
-            content = @Content(example = DEFAULT_EPCIS_MAX_PARAMETER_VALUE)),
+            example = DEFAULT_EPCIS_MAX_PARAMETER_VALUE),
         @Parameter(
             name = "GS1-Extensions",
             description = ParameterDescriptions.GS1_EXTENSIONS,
