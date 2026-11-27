@@ -22,14 +22,11 @@ import io.openepcis.constants.CBVVersion;
 import io.openepcis.constants.EPCISVersion;
 import io.openepcis.model.epcis.EPCISEvent;
 import io.openepcis.model.epcis.constants.CommonConstants;
-import io.openepcis.model.epcis.exception.UnsupportedMediaTypeException;
 import io.openepcis.resource.specs.EventsCaptureApi;
 import io.quarkus.security.PermissionsAllowed;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.Optional;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
@@ -43,21 +40,6 @@ public class EventsCaptureResource implements EventsCaptureApi {
   private final CaptureEventManagementService captureEventManagementService;
   private final RestResourceUtil restResourceUtil;
   private final CaptureContextUtil captureContextUtil;
-
-  @PermissionsAllowed("query")
-  public Uni<Response> validateEvents(SecurityIdentity securityIdentity, InputStream body) throws IOException {
-    CaptureContext ctx = captureContextUtil.createCaptureContext(securityIdentity);
-    final Optional<CaptureEventService> captureEventService = captureEventManagementService.getCaptureEventService(ctx);
-    if (captureEventService.isEmpty()) {
-      throw new UnsupportedMediaTypeException(String.format("unable to find CaptureEventService for Content-Type: %s and EPCISVersion: %s", ctx.getContentType(), ctx.getEpcisVersion()));
-    }
-    return captureEventService.get().validateCaptureDocument(body).map(invalidEventsInfo -> {
-      Response.ResponseBuilder builder = Response.ok(invalidEventsInfo);
-      builder.header(CommonConstants.GS1_EPCIS_Capture_Limit, String.valueOf(captureEventService.get().getCaptureLimit()));
-      builder.header(CommonConstants.GS1_EPCIS_Capture_File_Size_Limit, String.valueOf(captureEventService.get().getCaptureFileSizeLimit()));
-      return builder.build();
-    });
-  }
 
   @PermissionsAllowed("capture")
   public Uni<Response> postEvent(SecurityIdentity securityIdentity, String epcisDocumentStr) {

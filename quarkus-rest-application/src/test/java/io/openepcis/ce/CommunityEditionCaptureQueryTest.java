@@ -108,6 +108,23 @@ class CommunityEditionCaptureQueryTest {
   }
 
   @Test
+  @DisplayName("the OpenAPI document offers the EPCIS 2.0 standard and nothing of OpenEPCIS's own")
+  void openApiHasOnlyStandardOperations() {
+    given()
+        .queryParam("format", "json")
+        .when()
+        .get("/q/openapi")
+        .then()
+        .statusCode(200)
+        .body(containsString("/events"))
+        .body(not(containsString("/events/aggregate")))
+        .body(not(containsString("/events/validate")))
+        .body(not(containsString("/userExtension")))
+        .body(not(containsString("\"put\"")))
+        .body(not(containsString("x-openepcis-non-standard")));
+  }
+
+  @Test
   @DisplayName("a captured document is queryable, in 2.0 JSON and in 1.2 XML")
   void captureThenQuery() {
     awaitReadiness();

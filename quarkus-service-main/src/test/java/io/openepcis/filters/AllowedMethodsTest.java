@@ -19,8 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.openepcis.resource.QueriesResource;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +36,26 @@ import org.junit.jupiter.api.Test;
  * among the headers such an answer carries.
  */
 class AllowedMethodsTest {
+
+    /** What another edition adds to a named query, the way ResourceExtension describes it. */
+    @Path("queries")
+    static class NamedQueryUpdate implements ResourceExtension {
+        @PUT
+        @Path("{queryName}")
+        public void update(final String queryName) {}
+
+        @Override
+        public Class<?> extendedResource() {
+            return QueriesResource.class;
+        }
+    }
+
+    private static Method optionsMethod(final String optionsMethodName) {
+        return Arrays.stream(QueriesResource.class.getMethods())
+                .filter(m -> m.getName().equals(optionsMethodName))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("no such method: " + optionsMethodName));
+    }
 
     private static Optional<String> allowFor(final String optionsMethodName) {
         final Method options =
@@ -51,11 +74,29 @@ class AllowedMethodsTest {
     }
 
     @Test
-    @DisplayName("a named query is read, replaced and removed")
+    @DisplayName("a named query is read and removed, as the standard has it")
     void namedQuery() {
-        // /queries/{queryName}: PUT is ours and not the standard's, and is named here because it
-        // is offered; a client that reads Allow learns what this repository actually answers to.
-        assertEquals(Optional.of("OPTIONS, GET, PUT, DELETE"), allowFor("queriesQueryNameOptions"));
+        assertEquals(Optional.of("OPTIONS, GET, DELETE"), allowFor("queriesQueryNameOptions"));
+    }
+
+    @Test
+    @DisplayName("a method another edition adds to the path is named too")
+    void namedQueryWithExtension() {
+        // PUT /queries/{queryName} is not the standard's; where an edition offers it, a client
+        // that reads Allow learns what this repository actually answers to
+        assertEquals(
+                Optional.of("OPTIONS, GET, PUT, DELETE"),
+                AllowedMethods.of(
+                        QueriesResource.class,
+                        optionsMethod("queriesQueryNameOptions"),
+                        List.of(NamedQueryUpdate.class)));
+        // and nothing leaks onto paths it does not add to
+        assertEquals(
+                Optional.of("OPTIONS, GET"),
+                AllowedMethods.of(
+                        QueriesResource.class,
+                        optionsMethod("queriesQueryNameEventsOptions"),
+                        List.of(NamedQueryUpdate.class)));
     }
 
     @Test

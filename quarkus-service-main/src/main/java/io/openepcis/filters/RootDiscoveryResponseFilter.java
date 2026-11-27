@@ -20,6 +20,7 @@ import io.openepcis.capture.api.CaptureEventService;
 import io.openepcis.constants.EPCISFormat;
 import io.openepcis.constants.EPCISVersion;
 import io.openepcis.resource.RestResourceUtil;
+import io.quarkus.arc.ClientProxy;
 import io.vertx.core.http.HttpMethod;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
@@ -40,6 +41,8 @@ public class RootDiscoveryResponseFilter {
   private final RestResourceUtil restResourceUtil;
   @Inject
   Instance<CaptureEventManagementService> captureEventManagementServices;
+  @Inject
+  Instance<ResourceExtension> resourceExtensions;
   private static final Set<Pattern> ROOT_RESOURCES = Set.of("/", "/capture", "/capture/.*", "/events", "/events/.*", "/eventTypes", "/eventTypes/.*", "/epcs", "/epcs/.*", "/bizSteps", "/bizSteps/.*", "/bizLocations", "/bizLocations/.*", "/readPoints", "/readPoints/.*", "/dispositions", "/dispositions/.*", "/queries", "/queries/.*").stream().map(Pattern::compile).collect(Collectors.toSet());
 
   @ServerResponseFilter
@@ -55,12 +58,23 @@ public class RootDiscoveryResponseFilter {
           // EPCIS 2.0 has a discovery request name the methods of the resource it asked about.
           // This sent every other discovery header and not this one, so a client could read our
           // versions and extensions but still had to guess what it was allowed to do here.
-          AllowedMethods.of(resourceInfo.getResourceClass(), resourceInfo.getResourceMethod())
+          AllowedMethods.of(resourceInfo.getResourceClass(), resourceInfo.getResourceMethod(), extensionsOf(resourceInfo.getResourceClass()))
               .ifPresent(allow -> responseContext.getHeaders().put(ALLOW, List.of(allow)));
           responseContext.setStatus(204);
         }
       }
     }
+  }
+
+  /** The classes that add methods to the paths of {@code resourceClass}. */
+  private List<Class<?>> extensionsOf(final Class<?> resourceClass) {
+    if (resourceClass == null) {
+      return List.of();
+    }
+    return resourceExtensions.stream()
+        .filter(extension -> extension.extendedResource().isAssignableFrom(resourceClass))
+        .<Class<?>>map(extension -> ClientProxy.unwrap(extension).getClass())
+        .toList();
   }
 
   private Optional<CaptureEventService> findCaptureEventService(final String requestUrl) {

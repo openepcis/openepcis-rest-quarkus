@@ -87,21 +87,6 @@ public class QueriesResource implements IsTopLevelResource, QueryApi {
     }
 
     @PermissionsAllowed("query")
-    @Override
-    public Uni<Response> queriesQueryNamePut(String epcisVersion, String cbvVersion, String queryName, String epcisQuery, HttpServerRequest request) {
-        final String supportGS1Extensions = restResourceUtil.getSupportedGS1Extensions();
-        restResourceUtil.validateFormatOfGS1Headers(epcisVersion, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(cbvVersion), Optional.empty(), restResourceUtil.getCBVFormatValue(Optional.empty()));
-        restResourceUtil.verifyGS1Headers(epcisVersion, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(cbvVersion));
-        return queryService.updateEpcisQuery(queryName, epcisQuery, Optional.of(supportGS1Extensions)).map(qName -> {
-            final Optional<String> url = Optional.of(request.uri().toString());
-            final Response.ResponseBuilder builder = Response.ok();
-            final String locationUrl = String.format("%s/%s", url.get(), qName);
-            builder.header(LOCATION, locationUrl).header(CommonConstants.GS1_EPCIS_VERSION, restResourceUtil.epcisVersion().map(EPCISVersion::getVersion).orElse(EPCISVersion.VERSION_2_0_1.getVersion())).header(CommonConstants.GS1_CBV_VERSION, restResourceUtil.cbvVersion().map(CBVVersion::getVersion).orElse(CBVVersion.VERSION_2_0_1.getVersion())).header(HeaderConstants.GS1_EXTENSIONS, supportGS1Extensions);
-            return builder.build();
-        });
-    }
-
-    @PermissionsAllowed("query")
     public Uni<Response> queriesQueryNameGet(String queryName) {
         // The failure is left to the exception mappers, which turn a missing name into a 404 with
         // a problem body. The handler that used to sit here built a response and dropped it:

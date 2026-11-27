@@ -20,6 +20,7 @@ import jakarta.ws.rs.Path;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -47,13 +48,24 @@ public final class AllowedMethods {
    *     method and there is nothing honest to say.
    */
   public static Optional<String> of(final Class<?> resourceClass, final Method matched) {
+    return of(resourceClass, matched, List.of());
+  }
+
+  /**
+   * As {@link #of(Class, Method)}, counting the methods of {@code extensions} as well: classes
+   * that add methods to the paths of {@code resourceClass} (see {@link ResourceExtension}).
+   */
+  public static Optional<String> of(
+      final Class<?> resourceClass, final Method matched, final Collection<Class<?>> extensions) {
     if (resourceClass == null || matched == null) {
       return Optional.empty();
     }
     final Set<Class<?>> hierarchy = hierarchyOf(resourceClass);
     final String path = pathOf(hierarchy, matched);
+    final Set<Class<?>> searched = new LinkedHashSet<>(hierarchy);
+    extensions.forEach(extension -> searched.addAll(hierarchyOf(extension)));
     final Set<String> found = new LinkedHashSet<>();
-    for (final Class<?> type : hierarchy) {
+    for (final Class<?> type : searched) {
       for (final Method candidate : type.getDeclaredMethods()) {
         if (Objects.equals(pathOf(candidate), path)) {
           verbOf(candidate).ifPresent(found::add);

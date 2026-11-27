@@ -18,8 +18,6 @@ package io.openepcis.resource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.openepcis.query.data.EpcisQueryType;
 import io.openepcis.model.epcis.*;
-import io.openepcis.model.epcis.exception.QueryParameterException;
-import io.openepcis.query.aggregation.EventGroupBy;
 import io.openepcis.query.context.QueryContext;
 import io.openepcis.resource.specs.EventsApi;
 import io.openepcis.service.api.QueryService;
@@ -28,7 +26,6 @@ import io.openepcis.service.util.QueryDocumentUtil;
 import io.quarkus.security.PermissionsAllowed;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.mutiny.Uni;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
@@ -61,45 +58,6 @@ public class EventsResource implements IsTopLevelResource, EventsApi {
       builder.header(HeaderConstants.GS1_EXTENSIONS, supportGS1Extensions);
       return restResourceUtil.linkNextPage(responseContainer, queryContext, builder).build();
     });
-  }
-
-  @PermissionsAllowed("query")
-  public Uni<Response> eventsAggregate(SecurityIdentity securityIdentity, UriInfo uriInfo, String groupBy, String size) {
-    final EventGroupBy grouping = groupBy(groupBy);
-    final int buckets = bucketCount(size);
-    // the same parameters as GET /events, parsed the same way, the GS1-Extensions header included;
-    // groupBy and size are not EPCIS parameters and are left out of the query there
-    final QueryContext queryContext = restResourceUtil.queryContext();
-    final String supportGS1Extensions = restResourceUtil.getSupportedGS1Extensions();
-    return queryService.aggregateEvents(queryContext, grouping, buckets)
-        .map(aggregation -> Response.ok(aggregation, MediaType.APPLICATION_JSON_TYPE)
-            .header(HeaderConstants.GS1_EXTENSIONS, supportGS1Extensions)
-            .build());
-  }
-
-  static EventGroupBy groupBy(final String groupBy) {
-    if (groupBy == null || groupBy.isBlank()) {
-      throw new QueryParameterException("groupBy is required, one of: " + EventGroupBy.names());
-    }
-    return EventGroupBy.parse(groupBy).orElseThrow(() -> new QueryParameterException(
-        String.format("groupBy '%s' is not known, one of: %s", groupBy, EventGroupBy.names())));
-  }
-
-  static int bucketCount(final String size) {
-    if (size == null || size.isBlank()) {
-      return EventGroupBy.DEFAULT_SIZE;
-    }
-    final int parsed;
-    try {
-      parsed = Integer.parseInt(size.trim());
-    } catch (NumberFormatException e) {
-      throw new QueryParameterException(String.format("size '%s' is not a number", size));
-    }
-    if (parsed < EventGroupBy.MIN_SIZE || parsed > EventGroupBy.MAX_SIZE) {
-      throw new QueryParameterException(String.format(
-          "size must be between %d and %d, not %d", EventGroupBy.MIN_SIZE, EventGroupBy.MAX_SIZE, parsed));
-    }
-    return parsed;
   }
 
   @PermissionsAllowed("query")
