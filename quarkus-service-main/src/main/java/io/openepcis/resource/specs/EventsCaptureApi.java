@@ -66,12 +66,12 @@ public interface EventsCaptureApi {
             name = "GS1-EPCIS-Version",
             description = ParameterDescriptions.GS1_EPCIS_VERSION,
             in = ParameterIn.HEADER,
-            content = @Content(example = DEFAULT_EPCIS_VERSION_PARAMETER_VALUE)),
+            example = DEFAULT_EPCIS_VERSION_PARAMETER_VALUE),
         @Parameter(
             name = "GS1-CBV-Version",
             description = ParameterDescriptions.GS1_CBV_VERSION,
             in = ParameterIn.HEADER,
-            content = @Content(example = DEFAULT_CBV_VERSION_PARAMETER_VALUE)),
+            example = DEFAULT_CBV_VERSION_PARAMETER_VALUE),
         @Parameter(
             name = "GS1-Extensions",
             description = ParameterDescriptions.GS1_EXTENSIONS,

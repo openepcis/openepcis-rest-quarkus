@@ -78,27 +78,27 @@ public interface ReadPointsTopLevelApi {
         @Parameter(
             name = "nextPageToken",
             in = ParameterIn.QUERY,
-            content = @Content(example = "3A15506738749783AU6D7DENAKwM2gQRRwGritaeq")),
+            example = "3A15506738749783AU6D7DENAKwM2gQRRwGritaeq"),
         @Parameter(
             name = "GS1-CBV-Min",
             description = ParameterDescriptions.GS1_CBV_MIN,
             in = ParameterIn.HEADER,
-            content = @Content(example = DEFAULT_CBV_MIN_PARAMETER_VALUE)),
+            example = DEFAULT_CBV_MIN_PARAMETER_VALUE),
         @Parameter(
             name = "GS1-CBV-Max",
             description = ParameterDescriptions.GS1_CBV_MAX,
             in = ParameterIn.HEADER,
-            content = @Content(example = DEFAULT_CBV_MAX_PARAMETER_VALUE)),
+            example = DEFAULT_CBV_MAX_PARAMETER_VALUE),
         @Parameter(
             name = "GS1-EPCIS-Min",
             description = ParameterDescriptions.GS1_EPCIS_MIN,
             in = ParameterIn.HEADER,
-            content = @Content(example = DEFAULT_EPCIS_MIN_PARAMETER_VALUE)),
+            example = DEFAULT_EPCIS_MIN_PARAMETER_VALUE),
         @Parameter(
             name = "GS1-EPCIS-Max",
             description = ParameterDescriptions.GS1_EPCIS_MAX,
             in = ParameterIn.HEADER,
-            content = @Content(example = DEFAULT_EPCIS_MAX_PARAMETER_VALUE)),
+            example = DEFAULT_EPCIS_MAX_PARAMETER_VALUE),
         @Parameter(
             name = "GS1-EPC-Format",
             description = ParameterDescriptions.GS1_EPC_FORMAT,
@@ -189,11 +189,11 @@ public interface ReadPointsTopLevelApi {
         @Parameter(
             name = "perPage",
             in = ParameterIn.QUERY,
-            content = @Content(example = DEFAULT_PER_PAGE_PARAMETER_VALUE)),
+            example = DEFAULT_PER_PAGE_PARAMETER_VALUE),
         @Parameter(
             name = "nextPageToken",
             in = ParameterIn.QUERY,
-            content = @Content(example = "3A15506738749783AU6D7DENAKwM2gQRRwGritaeq")),
+            example = "3A15506738749783AU6D7DENAKwM2gQRRwGritaeq"),
         @Parameter(
             description = "A read point value.",
             required = true,
@@ -310,27 +310,27 @@ public interface ReadPointsTopLevelApi {
             name = "nextPageToken",
             description = ParameterDescriptions.NEXT_PAGE_TOKEN,
             in = ParameterIn.QUERY,
-            content = @Content(example = "3A15506738749783AU6D7DENAKwM2gQRRwGritaeq")),
+            example = "3A15506738749783AU6D7DENAKwM2gQRRwGritaeq"),
         @Parameter(
             name = "GE_eventTime",
             description = ParameterDescriptions.GE_EVENT_TIME,
             in = ParameterIn.QUERY,
-            content = @Content(example = "2022-06-30T00:15:47.000-05:00")),
+            example = "2022-06-30T00:15:47.000-05:00"),
         @Parameter(
             name = "LT_eventTime",
             description = ParameterDescriptions.LT_EVENT_TIME,
             in = ParameterIn.QUERY,
-            content = @Content(example = "2022-06-30T00:15:47.000-05:00")),
+            example = "2022-06-30T00:15:47.000-05:00"),
         @Parameter(
             name = "GE_recordTime",
             description = ParameterDescriptions.GE_RECORD_TIME,
             in = ParameterIn.QUERY,
-            content = @Content(example = "2022-06-30T00:15:47.000-05:00")),
+            example = "2022-06-30T00:15:47.000-05:00"),
         @Parameter(
             name = "LT_recordTime",
             description = ParameterDescriptions.LT_RECORD_TIME,
             in = ParameterIn.QUERY,
-            content = @Content(example = "2022-06-30T00:15:47.000-05:00")),
+            example = "2022-06-30T00:15:47.000-05:00"),
         @Parameter(
             name = "EQ_action",
             description = ParameterDescriptions.EQ_ACTION,
@@ -360,17 +360,17 @@ public interface ReadPointsTopLevelApi {
             name = "WD_readPoint",
             description = ParameterDescriptions.WD_READ_POINT,
             in = ParameterIn.QUERY,
-            content = @Content(example = "urn:epc:id:sgln:0012345.11111.400")),
+            example = "urn:epc:id:sgln:0012345.11111.400"),
         @Parameter(
             name = "EQ_bizLocation",
             description = ParameterDescriptions.EQ_BIZ_LOCATION,
             in = ParameterIn.QUERY,
-            content = @Content(example = "urn:epc:id:sgln:0012345.11111.400")),
+            example = "urn:epc:id:sgln:0012345.11111.400"),
         @Parameter(
             name = "WD_bizLocation",
             description = ParameterDescriptions.WD_BIZ_LOCATION,
             in = ParameterIn.QUERY,
-            content = @Content(example = "urn:epc:id:sgln:0012345.11111.400")),
+            example = "urn:epc:id:sgln:0012345.11111.400"),
         @Parameter(
             name = "EQ_transformationID",
             description = ParameterDescriptions.EQ_TRANSFORMATION_ID,
@@ -440,12 +440,12 @@ public interface ReadPointsTopLevelApi {
             name = "GE_errorDeclarationTime",
             description = ParameterDescriptions.GE_ERROR_DECLARATION_TIME,
             in = ParameterIn.QUERY,
-            content = @Content(example = "2022-06-30T00:15:47.000-05:00")),
+            example = "2022-06-30T00:15:47.000-05:00"),
         @Parameter(
             name = "LT_errorDeclarationTime",
             description = ParameterDescriptions.LT_ERROR_DECLARATION_TIME,
             in = ParameterIn.QUERY,
-            content = @Content(example = "2022-06-30T00:15:47.000-05:00")),
+            example = "2022-06-30T00:15:47.000-05:00"),
         @Parameter(
             name = "EQ_errorReason",
             description = ParameterDescriptions.EQ_ERROR_REASON,
@@ -474,22 +474,22 @@ public interface ReadPointsTopLevelApi {
             name = "GE_startTime",
             description = ParameterDescriptions.GE_START_TIME,
             in = ParameterIn.QUERY,
-            content = @Content(example = "2022-06-30T00:15:47.000-05:00")),
+            example = "2022-06-30T00:15:47.000-05:00"),
         @Parameter(
             name = "LT_startTime",
             description = ParameterDescriptions.LT_START_TIME,
             in = ParameterIn.QUERY,
-            content = @Content(example = "2022-06-30T00:15:47.000-05:00")),
+            example = "2022-06-30T00:15:47.000-05:00"),
         @Parameter(
             name = "GE_endTime",
             description = ParameterDescriptions.GE_END_TIME,
             in = ParameterIn.QUERY,
-            content = @Content(example = "2022-06-30T00:15:47.000-05:00")),
+            example = "2022-06-30T00:15:47.000-05:00"),
         @Parameter(
             name = "LT_endTime",
             description = ParameterDescriptions.LT_END_TIME,
             in = ParameterIn.QUERY,
-            content = @Content(example = "2022-06-30T00:15:47.000-05:00")),
+            example = "2022-06-30T00:15:47.000-05:00"),
         @Parameter(
             name = "EQ_type",
             description = ParameterDescriptions.EQ_TYPE,
@@ -535,22 +535,22 @@ public interface ReadPointsTopLevelApi {
             name = "GS1-CBV-Min",
             description = ParameterDescriptions.GS1_CBV_MIN,
             in = ParameterIn.HEADER,
-            content = @Content(example = DEFAULT_CBV_MIN_PARAMETER_VALUE)),
+            example = DEFAULT_CBV_MIN_PARAMETER_VALUE),
         @Parameter(
             name = "GS1-CBV-Max",
             description = ParameterDescriptions.GS1_CBV_MAX,
             in = ParameterIn.HEADER,
-            content = @Content(example = DEFAULT_CBV_MAX_PARAMETER_VALUE)),
+            example = DEFAULT_CBV_MAX_PARAMETER_VALUE),
         @Parameter(
             name = "GS1-EPCIS-Min",
             description = ParameterDescriptions.GS1_EPCIS_MIN,
             in = ParameterIn.HEADER,
-            content = @Content(example = DEFAULT_EPCIS_MIN_PARAMETER_VALUE)),
+            example = DEFAULT_EPCIS_MIN_PARAMETER_VALUE),
         @Parameter(
             name = "GS1-EPCIS-Max",
             description = ParameterDescriptions.GS1_EPCIS_MAX,
             in = ParameterIn.HEADER,
-            content = @Content(example = DEFAULT_EPCIS_MAX_PARAMETER_VALUE)),
+            example = DEFAULT_EPCIS_MAX_PARAMETER_VALUE),
         @Parameter(
             name = "GS1-EPC-Format",
             description = ParameterDescriptions.GS1_EPC_FORMAT,
