@@ -32,8 +32,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.InputStream;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.ParameterIn;
 import org.eclipse.microprofile.openapi.annotations.headers.Header;
@@ -56,105 +54,6 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 @Path("/")
 @RegisterRestClient(configKey = "events-capture-api")
 public interface EventsCaptureApi {
-
-  @Operation(summary = "The Events Validation API", description = "eventsValidate")
-  @Tag(
-      name = "Events",
-      description = "Endpoints that allow you to retrieve EPCIS events as Web resources.")
-  @Parameters(
-      value = {
-        @Parameter(
-            name = "GS1-EPCIS-Version",
-            description = ParameterDescriptions.GS1_EPCIS_VERSION,
-            in = ParameterIn.HEADER,
-            content = @Content(example = DEFAULT_EPCIS_VERSION_PARAMETER_VALUE)),
-        @Parameter(
-            name = "GS1-EPCIS-Min",
-            description = ParameterDescriptions.GS1_EPCIS_MIN,
-            in = ParameterIn.HEADER,
-            content = @Content(example = DEFAULT_EPCIS_MIN_PARAMETER_VALUE)),
-        @Parameter(
-            name = "GS1-EPCIS-Max",
-            description = ParameterDescriptions.GS1_EPCIS_MAX,
-            in = ParameterIn.HEADER,
-            content = @Content(example = DEFAULT_EPCIS_MAX_PARAMETER_VALUE)),
-        @Parameter(
-            name = "GS1-CBV-Version",
-            description = ParameterDescriptions.GS1_CBV_VERSION,
-            in = ParameterIn.HEADER,
-            content = @Content(example = DEFAULT_CBV_VERSION_PARAMETER_VALUE))
-      })
-  @APIResponses(
-      value = {
-        @APIResponse(
-            responseCode = "200",
-            description = "Successfully validated one or more EPCIS events"),
-        @APIResponse(
-            responseCode = "400",
-            description = "An error occurred while validating EPCIS events",
-            content =
-                @Content(
-                    schema = @Schema(implementation = ProblemResponseBody.class),
-                    example = ResponseBodyExamples.RESPONSE_400_QUERY_ISSUES)),
-        @APIResponse(
-            responseCode = "401",
-            description = "Authorization information is missing or invalid.",
-            content =
-                @Content(
-                    schema = @Schema(implementation = ProblemResponseBody.class),
-                    example = ResponseBodyExamples.RESPONSE_401_UNAUTHORIZED_REQUEST)),
-        @APIResponse(
-            responseCode = "403",
-            description = "Client is unauthorized to access this resource.",
-            content =
-                @Content(
-                    schema = @Schema(implementation = ProblemResponseBody.class),
-                    example = ResponseBodyExamples.RESPONSE_403_CLIENT_UNAUTHORIZED)),
-        @APIResponse(
-            responseCode = "406",
-            description = "The server cannot return the response as requested.",
-            content =
-                @Content(
-                    schema = @Schema(implementation = ProblemResponseBody.class),
-                    example = ResponseBodyExamples.RESPONSE_406_NOT_ACCEPTABLE)),
-        @APIResponse(
-            responseCode = "500",
-            description = "An error occurred on the backend.",
-            content =
-                @Content(
-                    schema = @Schema(implementation = ProblemResponseBody.class),
-                    example = ResponseBodyExamples.RESPONSE_500_IMPLEMENTATION_EXCEPTION)),
-        @APIResponse(
-            responseCode = "415",
-            description =
-                "The client sent data in a format that is not supported " + "by the server.",
-            content =
-                @Content(
-                    schema = @Schema(implementation = ProblemResponseBody.class),
-                    example = ResponseBodyExamples.RESPONSE_415_UNSUPPORTED_MEDIA_TYPE)),
-        @APIResponse(
-            responseCode = "413",
-            description =
-                "The `POST` request is too large. It exceeds the limits "
-                    + "set in `GS1-EPCIS-Capture-Limit` and/or `GS1-EPCIS-Capture-File-Size-Limit`.",
-            content =
-                @Content(
-                    schema = @Schema(implementation = ProblemResponseBody.class),
-                    example = ResponseBodyExamples.RESPONSE_413_CAPTURE_PAYLOAD_TOO_LARGE))
-      })
-  @PermissionsAllowed("query")
-  @POST
-  @Path("events/validate")
-  @Produces({
-    MediaType.APPLICATION_JSON,
-    MediaType.APPLICATION_XML,
-    MediaType.TEXT_XML,
-    "application/problem+json",
-    "application/ld+json"
-  })
-  @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, "application/ld+json"})
-  public Uni<Response> validateEvents(
-      @Context SecurityIdentity securityIdentity, @Valid InputStream body) throws IOException;
 
   @Operation(
       summary = "Synchronous capture endpoint for a single EPCIS event.",

@@ -6,6 +6,21 @@ platform release.
 
 ## [Unreleased]
 
+### Removed
+- `GET /events/aggregate`, `POST /events/validate` and `PUT /queries/{queryName}` leave the
+  Community Edition; they are part of the Business edition. The aggregation itself stays in
+  `openepcis-query`. `/userExtension/jsonSchema` stays: capture accepts an event with an
+  extension of its own only once a JSON schema for that namespace is registered, and EPCIS 2.0
+  allows such extensions. It is marked non-standard in the OpenAPI document.
+
+### Added
+- `NonStandardOperationsOASFilter`: every operation that the GS1 EPCIS 2.0 REST binding does not
+  define is marked in the OpenAPI document, with "(non-standard)" in its summary, a note in its
+  description and `x-openepcis-non-standard: true`. Decided by the standard's operation list, so
+  an edition's own endpoints are marked without anyone remembering to.
+- `ResourceExtension`: a resource that adds a method to a path another resource serves names
+  that resource, and the `Allow` header of a discovery request on the path includes the method.
+
 ## [0.9.4]
 
 First public release under Apache-2.0, as the REST application of the OpenEPCIS Community

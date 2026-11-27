@@ -46,7 +46,6 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.eclipse.microprofile.openapi.annotations.tags.Tags;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 import org.jboss.resteasy.reactive.RestPath;
-import org.jboss.resteasy.reactive.RestQuery;
 
 @Tag(
     name = "Events",
@@ -439,129 +438,6 @@ public interface EventsApi {
   @Consumes({MediaType.APPLICATION_JSON, "application/ld+json"})
   public Uni<Response> eventsGet(
       @Context SecurityIdentity securityIdentity, @Context UriInfo uriInfo);
-
-  String AGGREGATE_200_EXAMPLE =
-      "{\"groupBy\":\"bizStep\",\"total\":12345,\"buckets\":["
-          + "{\"key\":\"urn:epcglobal:cbv:bizstep:shipping\",\"count\":512},"
-          + "{\"key\":\"urn:epcglobal:cbv:bizstep:receiving\",\"count\":301}],"
-          + "\"otherCount\":17}";
-
-  @Tag(
-      name = "Events",
-      description = "Endpoints that allow you to retrieve EPCIS events as Web resources.")
-  @Operation(
-      summary = "Counts EPCIS events, grouped",
-      description =
-          "Counts the events `GET /events` would return for the same query parameters, grouped by one field, without returning the events themselves. "
-              + "Every EPCIS query parameter of `GET /events` applies, as does the `GS1-Extensions` header; `perPage` and `nextPageToken` are refused, since an aggregation has no pages. "
-              + "The same access rules apply as for `GET /events`: only events the caller may see are counted.\n\n"
-              + "`total` is the number of matching events, `buckets` the groups with their counts and `otherCount` the events in groups beyond the returned buckets. "
-              + "Events without the grouped field are counted in `total` and in no bucket. "
-              + "`bizStep`, `disposition`, `readPoint` and `bizLocation` are grouped by their URN form; a value with no URN form is grouped as captured. "
-              + "`day` and `month` group by `eventTime` in UTC, oldest first, keyed `2026-11-19` and `2026-11`; for these `otherCount` is always 0 and `size` does not apply.")
-  @Parameters(
-      value = {
-        @Parameter(
-            name = "groupBy",
-            description = "What to count events by.",
-            required = true,
-            in = ParameterIn.QUERY,
-            schema =
-                @Schema(
-                    type = org.eclipse.microprofile.openapi.annotations.enums.SchemaType.STRING,
-                    enumeration = {
-                      "eventType",
-                      "bizStep",
-                      "disposition",
-                      "readPoint",
-                      "bizLocation",
-                      "action",
-                      "day",
-                      "month"
-                    })),
-        @Parameter(
-            name = "size",
-            description = "The number of buckets for a grouping by field, 1 to 100. Default 20.",
-            in = ParameterIn.QUERY,
-            schema =
-                @Schema(
-                    type = org.eclipse.microprofile.openapi.annotations.enums.SchemaType.INTEGER,
-                    minimum = "1",
-                    maximum = "100",
-                    defaultValue = "20")),
-        @Parameter(
-            name = "eventType",
-            description = ParameterDescriptions.EVENT_TYPE,
-            in = ParameterIn.QUERY,
-            content = @Content(example = "ObjectEvent")),
-        @Parameter(
-            name = "GE_eventTime",
-            description = ParameterDescriptions.GE_EVENT_TIME,
-            in = ParameterIn.QUERY,
-            content = @Content(example = "2026-11-01T00:00:00Z")),
-        @Parameter(
-            name = "LT_eventTime",
-            description = ParameterDescriptions.LT_EVENT_TIME,
-            in = ParameterIn.QUERY,
-            content = @Content(example = "2026-12-01T00:00:00Z")),
-        @Parameter(
-            name = "EQ_bizStep",
-            description = ParameterDescriptions.EQ_BIZ_STEP,
-            in = ParameterIn.QUERY,
-            content = @Content(example = "shipping")),
-        @Parameter(
-            name = "GS1-Extensions",
-            description = ParameterDescriptions.GS1_EXTENSIONS,
-            in = ParameterIn.HEADER)
-      })
-  @APIResponses(
-      value = {
-        @APIResponse(
-            responseCode = "200",
-            description = "The counts.",
-            content =
-                @Content(
-                    mediaType = MediaType.APPLICATION_JSON,
-                    schema = @Schema(implementation = io.openepcis.query.aggregation.EventAggregation.class),
-                    example = AGGREGATE_200_EXAMPLE)),
-        @APIResponse(
-            responseCode = "400",
-            description = "Unknown `groupBy`, `size` out of range, or a query parameter that is not as expected.",
-            content =
-                @Content(
-                    schema = @Schema(implementation = ProblemResponseBody.class),
-                    example = ResponseBodyExamples.RESPONSE_400_QUERY_ISSUES)),
-        @APIResponse(
-            responseCode = "401",
-            description = "Authorization information is missing or invalid.",
-            content =
-                @Content(
-                    schema = @Schema(implementation = ProblemResponseBody.class),
-                    example = ResponseBodyExamples.RESPONSE_401_UNAUTHORIZED_REQUEST)),
-        @APIResponse(
-            responseCode = "403",
-            description = "Client is unauthorized to access this resource.",
-            content =
-                @Content(
-                    schema = @Schema(implementation = ProblemResponseBody.class),
-                    example = ResponseBodyExamples.RESPONSE_403_CLIENT_UNAUTHORIZED)),
-        @APIResponse(
-            responseCode = "500",
-            description = "This is a server-side problem caused while query execution.",
-            content =
-                @Content(
-                    schema = @Schema(implementation = ProblemResponseBody.class),
-                    example = ResponseBodyExamples.RESPONSE_500_IMPLEMENTATION_EXCEPTION))
-      })
-  @PermissionsAllowed("query")
-  @GET
-  @Path("events/aggregate")
-  @Produces({MediaType.APPLICATION_JSON, "application/problem+json"})
-  Uni<Response> eventsAggregate(
-      @Context SecurityIdentity securityIdentity,
-      @Context UriInfo uriInfo,
-      @RestQuery String groupBy,
-      @RestQuery String size);
 
   @Operation(
       summary = "Returns an individual EPCIS event",

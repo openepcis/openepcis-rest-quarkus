@@ -76,22 +76,15 @@ class EventsCapturePermissionsTest {
   }
 
   @Test
-  @DisplayName("a query-only identity is refused on POST /events and let in on validate")
+  @DisplayName("a query-only identity is refused on POST /events")
   void queryOnlyIdentityIsRefused() {
     final SecurityIdentity reader = identityWith("query");
     assertFalse(grants(reader, permissionsOf(EventsCaptureResource.class, "postEvent")));
-    assertTrue(grants(reader, permissionsOf(EventsCaptureResource.class, "validateEvents")));
   }
 
   @Test
   @DisplayName("a capture identity may post an event")
   void captureIdentityIsLetIn() {
     assertTrue(grants(identityWith("capture"), permissionsOf(EventsCaptureResource.class, "postEvent")));
-  }
-
-  @Test
-  @DisplayName("validate stays on query")
-  void validateStaysOnQuery() {
-    assertArrayEquals(new String[] {"query"}, permissionsOf(EventsCaptureApi.class, "validateEvents"));
   }
 }
