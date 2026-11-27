@@ -17,7 +17,9 @@ package io.openepcis.ce;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.quarkus.test.common.QuarkusTestResource;
@@ -108,7 +110,7 @@ class CommunityEditionCaptureQueryTest {
   }
 
   @Test
-  @DisplayName("the OpenAPI document offers the EPCIS 2.0 standard and nothing of OpenEPCIS's own")
+  @DisplayName("the OpenAPI document offers the EPCIS 2.0 standard, and the one extension it keeps is marked")
   void openApiHasOnlyStandardOperations() {
     given()
         .queryParam("format", "json")
@@ -119,9 +121,10 @@ class CommunityEditionCaptureQueryTest {
         .body(containsString("/events"))
         .body(not(containsString("/events/aggregate")))
         .body(not(containsString("/events/validate")))
-        .body(not(containsString("/userExtension")))
-        .body(not(containsString("\"put\"")))
-        .body(not(containsString("x-openepcis-non-standard")));
+        .body("paths.'/queries/{queryName}'.put", nullValue())
+        // registering a JSON schema stays: without it no event with an own extension is accepted
+        .body("paths.'/userExtension/jsonSchema'.post.x-openepcis-non-standard", equalTo(true))
+        .body("paths.'/events'.get.x-openepcis-non-standard", nullValue());
   }
 
   @Test

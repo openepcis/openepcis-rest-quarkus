@@ -7,10 +7,11 @@ platform release.
 ## [Unreleased]
 
 ### Removed
-- The OpenEPCIS extensions leave the Community Edition, which now offers the EPCIS 2.0 REST
-  binding and nothing else: `GET /events/aggregate`, `POST /events/validate`,
-  `PUT /queries/{queryName}` and `/userExtension/jsonSchema` (`POST`, `PUT`, `/url`). They are
-  part of the Business edition. The aggregation itself stays in `openepcis-query`.
+- `GET /events/aggregate`, `POST /events/validate` and `PUT /queries/{queryName}` leave the
+  Community Edition; they are part of the Business edition. The aggregation itself stays in
+  `openepcis-query`. `/userExtension/jsonSchema` stays: capture accepts an event with an
+  extension of its own only once a JSON schema for that namespace is registered, and EPCIS 2.0
+  allows such extensions. It is marked non-standard in the OpenAPI document.
 
 ### Added
 - `NonStandardOperationsOASFilter`: every operation that the GS1 EPCIS 2.0 REST binding does not
