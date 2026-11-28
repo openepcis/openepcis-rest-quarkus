@@ -232,13 +232,7 @@ public class EventPersistenceProcessor {
       final EPCISValidationMessage exceptionMessage = new EPCISValidationMessage();
       exceptionMessage.updateFrom(
           eventValidationMessage,
-          List.of(
-              new InvalidEPCISEventInfo(
-                  e.getClass().getSimpleName(),
-                  e.getMessage(),
-                  500,
-                  List.of(e.getStackTrace()).toString(),
-                  List.of(eventValidationMessage.getEventIndex()))));
+          List.of(EventFailure.of(e, eventValidationMessage.getEventIndex())));
       return Record.of(captureID, exceptionMessage);
     } finally {
       span.end();

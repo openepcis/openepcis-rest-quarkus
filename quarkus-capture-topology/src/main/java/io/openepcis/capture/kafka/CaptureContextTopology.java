@@ -323,7 +323,7 @@ public class CaptureContextTopology {
           // Record the root cause so downstream consumers of the
           // -failure topic can see why validation failed instead of
           // receiving an empty errors list.
-          invalidEPCISEvents.add(new InvalidEPCISEventInfo(failure.getClass().getSimpleName(), failure.getMessage(), 500, List.of(failure.getStackTrace()).toString(), List.of(documentCaptureMessage.getEventIndex())));
+          invalidEPCISEvents.add(EventFailure.of(failure, documentCaptureMessage.getEventIndex()));
           final EPCISValidationMessage failureMessage = new EPCISValidationMessage();
           failureMessage.updateFrom(documentCaptureMessage, invalidEPCISEvents);
           // If validation fails then produce
@@ -344,7 +344,7 @@ public class CaptureContextTopology {
         // epcis-event-validated-failure)
         log.error(" ❌ Exception occurred during validation/hash generation : {} ❌ ", e, documentCaptureMessage.getEventStorageKey());
         final EPCISValidationMessage exceptionMessage = new EPCISValidationMessage();
-        exceptionMessage.updateFrom(documentCaptureMessage, List.of(new InvalidEPCISEventInfo(e.getClass().getSimpleName(), e.getMessage(), 500, List.of(e.getStackTrace()).toString(), List.of(documentCaptureMessage.getEventIndex()))));
+        exceptionMessage.updateFrom(documentCaptureMessage, List.of(EventFailure.of(e, documentCaptureMessage.getEventIndex())));
         eventValidatedFailureEmitter.send(Record.of(captureID, exceptionMessage));
         span.recordException(e);
         span.end();
