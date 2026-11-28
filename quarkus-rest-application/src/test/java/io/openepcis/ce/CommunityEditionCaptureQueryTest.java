@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.quarkus.test.common.QuarkusTestResource;
@@ -28,6 +29,8 @@ import io.restassured.http.ContentType;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -202,6 +205,38 @@ class CommunityEditionCaptureQueryTest {
             .header("Location");
     awaitCaptureJob(location.substring(location.lastIndexOf('/') + 1));
     given().when().get("/q/health").then().statusCode(200).body(containsString("RUNNING"));
+  }
+
+  @Test
+  @DisplayName("a refused identifier and a duplicate in the document are 400s that say why")
+  void refusedDocumentsSayWhy() {
+    awaitReadiness();
+    final String epcList = "\"epcList\": [\"" + EPC + "\"]";
+    final String event =
+        DOCUMENT.substring(
+            DOCUMENT.lastIndexOf('{', DOCUMENT.indexOf("\"type\": \"ObjectEvent\"")),
+            DOCUMENT.lastIndexOf('}', DOCUMENT.lastIndexOf(']')) + 1);
+    final List<String> refused =
+        List.of(
+            DOCUMENT.replace(EPC, "https://id.gs1.org/01/09523765458/21/4333"),
+            DOCUMENT.replace(
+                epcList,
+                "\"quantityList\": [{\"epcClass\": \"urn:epc:class:lgtin:952012.LOT2026A\", \"quantity\": 5}]"),
+            DOCUMENT
+                .replace(event, event + "," + event)
+                .replace(EPC, "urn:epc:id:sgtin:0614141.107346.2019"));
+    for (final String document : refused) {
+      final String location =
+          given().contentType(ContentType.JSON).body(document).when().post("/capture")
+              .then().statusCode(202).extract().header("Location");
+      final var job = finishedJob(location.substring(location.lastIndexOf('/') + 1));
+      assertTrue(!job.getBoolean("success"), "the job succeeded: " + job.prettify());
+      final List<Map<String, Object>> errors = job.getList("errors");
+      assertEquals(1, errors.size(), "one error, the reason: " + job.prettify());
+      assertEquals(400, errors.get(0).get("status"), job.prettify());
+      final String detail = String.valueOf(errors.get(0).get("detail"));
+      assertTrue(!detail.isBlank() && !detail.contains(".java:"), "a readable detail: " + detail);
+    }
   }
 
   /**
